@@ -150,7 +150,6 @@ function initDatastore(callback){
     if (error) {
       console.log('Error opening default datastore: ' + error);
     }
-
     openDatastore = datastore;
     currentTable = datastore.getTable('Sidenotes');
 
