@@ -88,7 +88,6 @@ function displayResults(list, callback){
   var notes = "";
   var noteSearchList = document.querySelector('#search-results');
   noteSearchList.innerHTML = "";
-
   for(var i=0;i<list.length;i++){
     notes += renderNote(list[i]);
   }
