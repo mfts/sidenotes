@@ -2,8 +2,9 @@ var DROPBOX_APP_KEY = 'mpbhh63q8ya3ctd';
 
 var currentTable, openDatastore;
 
+var local_storage = chrome.storage.local;
 var client = new Dropbox.Client({key: DROPBOX_APP_KEY});
-var hashConverter = new Hashes.SHA1;;
+var hashConverter = new Hashes.SHA1;
 
 client.onAuthStepChange.addListener(function(event) {
   if (client.isAuthenticated()) {
@@ -76,13 +77,31 @@ appController = {
   },
   toggleSidePanel: function() {
     chrome.tabs.executeScript({code: this.formatScript(this.toggleSidePanelScript, "\n")});
+  },
+  checkForNote: function(tab){
+    local_storage.get(null, function(result){
+        if (result[hashConverter.hex(tab.url)]){
+          appController.setIconToIndicateNote(tab);
+        }
+    });
+  },
+  setIconToIndicateNote: function(tab){
+    chrome.browserAction.setIcon({path: {19: "../icon_existing_note.png", 38: "../icon_existing_note.png"}
+      , tabId: tab.id});
+  },
+  changeAllIconsToNormal: function(){
+    chrome.tabs.query(null, function(tabs){
+      for(var i=0;i<tabs.length;i++){
+        chrome.browserAction.setIcon({path: {19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id});
+      }
+    })
   }
 };
 
 datastoreController = {
   updateOrAddRecord: function(newNote, pastNote, hashKey){
     var newNoteData = this.makeRecord(newNote[hashKey]);
-    chrome.storage.local.set({saving: 'true'}, function(){});
+    local_storage.set({saving: 'true'});
     if(pastNote) {
       pastNote.update(newNoteData);
     } else {
@@ -99,15 +118,15 @@ datastoreController = {
     };
   },
   setRemoteNoteToLocalStorage: function(newRemoteNotes) {
-    chrome.storage.local.get(null, function(result){
+    local_storage.get(null, function(result){
         var newLocalNotes = datastoreController.mergeNotes(newRemoteNotes, result);
     });
   },
   syncRemoteStorage: function(currentTable){
-    chrome.storage.local.set({saving: 'false'}, function(){});
+    local_storage.set({saving: 'false'});
     var datastoreRecords = currentTable.query();
     if(datastoreRecords){
-      chrome.storage.local.get(null, function(result){
+      local_storage.get(null, function(result){
           datastoreController.mergeNotes(datastoreRecords, result);
       });
     }
@@ -121,11 +140,11 @@ datastoreController = {
         if(localMatchNote){
           if(localMatchNote['body'].length < datastoreRecords[i].get('body').length){
             newNote[noteKey] = datastoreController.formatForLocalStorage(datastoreRecords[i]);
-            chrome.storage.local.set(newNote, function(){});
+            local_storage.set(newNote);
           }
         } else {
           newNote[noteKey] = datastoreController.formatForLocalStorage(datastoreRecords[i]);
-          chrome.storage.local.set(newNote, function(){});
+          local_storage.set(newNote);
         }
       }
     }
@@ -136,8 +155,8 @@ datastoreController = {
   deleteNote: function(noteUrl, element){
     var result = confirm("Are you sure you want to delete this message?");
     if (result === true) {
-      element.style.display = 'none'
-      var localNoteToDelete = chrome.storage.local.remove(hashConverter.hex(noteUrl), function(){});
+      element.style.display = 'none';
+      var localNoteToDelete = local_storage.remove(hashConverter.hex(noteUrl), function(){});
       var noteToDelete = currentTable.query({url: noteUrl});
       noteToDelete[0].deleteRecord();
     }
@@ -150,6 +169,7 @@ function initDatastore(callback){
     if (error) {
       console.log('Error opening default datastore: ' + error);
     }
+
     openDatastore = datastore;
     currentTable = datastore.getTable('Sidenotes');
 
@@ -158,10 +178,17 @@ function initDatastore(callback){
       if(changes[hashKey]['newValue'] && changes[hashKey]['newValue']['url'] && changes[hashKey]['newValue']['body']){
         var existingRecord = currentTable.query({url: changes[hashKey]['newValue']['url'] });
         datastoreController.updateOrAddRecord(changes, existingRecord[0], hashKey);
+
+        chrome.tabs.query({currentWindow: true, active: true}, function(tab){
+          if(tab[0]){
+            appController.checkForNote(tab[0]);
+          }
+        })
+
       }
     });
 
-    chrome.storage.local.set({saving: 'false'}, function(){});
+    local_storage.set({saving: 'false'});
     var datastoreRecords = currentTable.query();
     datastoreController.setRemoteNoteToLocalStorage(datastoreRecords);
     callback(currentTable);
