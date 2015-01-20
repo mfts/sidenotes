@@ -18,6 +18,14 @@ client.authenticate({interactive:false}, function (error) {
   }
 });
 
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if(tab){ appController.checkForNote(tab);}
+});
+
+chrome.tabs.onCreated.addListener(function(tabId, changeInfo, tab) {
+   if(tab){ appController.checkForNote(tab);}
+});
+
 appController = {
   isAuthenticated: function(){
     return client.isAuthenticated();
@@ -36,7 +44,8 @@ appController = {
     client.signOut(null, function(){
       client.reset();
       appController.closeAllSidePanels();
-      chrome.storage.local.clear();
+      appController.changeAllIconsToNormal();
+      local_storage.clear();
     });
   },
   closeAllSidePanels: function(){

@@ -63,12 +63,11 @@ document.addEventListener( "DOMContentLoaded", function(){
         chrome.tabs.query({url: noteUrl}, function(tabs){
           for(var i=0;i<tabs.length;i++){
             chrome.tabs.executeScript(tabs[i].id, {code: 'document.body.style.width = (document.body.clientWidth + 300) + "px"; var sidebar = document.querySelector("#sidenotes_sidebar");document.body.removeChild(sidebar);'});
+            chrome.browserAction.setIcon({path:{19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id});
           }
         });
-        console.log(this);
-        console.log(noteUrl);
-        console.log(element);
         backgroundPage.datastoreController.deleteNote(noteUrl, element);
+
       });
     }
   }
