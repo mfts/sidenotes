@@ -88,8 +88,10 @@ appController = {
     chrome.tabs.executeScript({code: this.formatScript(this.toggleSidePanelScript, "\n")});
   },
   checkForNote: function(tab){
+    console.log(tab.url.slice(0).split('#')[0])
+    tab_url = tab.url.slice(0).split('#')[0];
     local_storage.get(null, function(result){
-        if (result[hashConverter.hex(tab.url.hash.slice(1).split('#')[0])]){
+        if (result[hashConverter.hex(tab_url)]){
           appController.setIconToIndicateNote(tab);
         }
     });
