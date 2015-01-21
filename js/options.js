@@ -73,7 +73,7 @@ document.addEventListener( "DOMContentLoaded", function(){
   }
 
   function setAllNotes(){
-    allRecords = chrome.extension.getBackgroundPage().currentTable.query();
+    allRecords = backgroundPage.currentTable.query();
     formattedRecords = formatNotes(allRecords);
     fuse = new Fuse(formattedRecords, options);
     displayResults(formattedRecords, addActionToNoteLink);
@@ -86,13 +86,15 @@ document.addEventListener( "DOMContentLoaded", function(){
 
 function displayResults(list, callback){
   var notes = "";
-  var noteSearchList = document.querySelector('#search-results');
-  noteSearchList.innerHTML = "";
-  for(var i=0;i<list.length;i++){
-    notes += renderNote(list[i]);
+  if(document){
+    var noteSearchList = document.querySelector('#search-results');
+    noteSearchList.innerHTML = "";
+    for(var i=0;i<list.length;i++){
+      notes += renderNote(list[i]);
+    }
+    noteSearchList.innerHTML = notes;
+    callback();
   }
-  noteSearchList.innerHTML = notes;
-  callback();
 }
 
 function displaySearchResults(list, callback){

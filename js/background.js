@@ -89,7 +89,7 @@ appController = {
   },
   checkForNote: function(tab){
     local_storage.get(null, function(result){
-        if (result[hashConverter.hex(tab.url)]){
+        if (result[hashConverter.hex(tab.url.hash.slice(1).split('#')[0])]){
           appController.setIconToIndicateNote(tab);
         }
     });
