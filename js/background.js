@@ -58,7 +58,7 @@ appController = {
   toggleSidePanelScript: function(){
     var closeSidePanel = function(){
       var sidebar = document.querySelector("#sidenotes_sidebar");
-      document.body.removeChild(sidebar);
+      document.documentElement.removeChild(sidebar);
     };
 
     var openSidePanel = function(){
@@ -69,15 +69,18 @@ appController = {
       newElement.setAttribute("style", "z-index: 999999999999999; position: fixed; top: 0px; right: 0px; bottom: 0px; width: 300px; height: 100%; border:0; border-left: 1px solid #eee; box-shadow: 0px -1px 7px 0px #aaa; overflow-x: hidden;");
       newElement.setAttribute("allowtransparency", "false");
       newElement.setAttribute("scrolling", "no");
-      document.body.appendChild(newElement);
+      document.documentElement.appendChild(newElement);
     };
 
     if (document.querySelector("#sidenotes_sidebar")) {
-      document.body.style.width = (document.body.clientWidth + 300) + "px";
+      document.body.style.transform = "";
       closeSidePanel();
     }
-    else {
-      document.body.style.width = (document.body.clientWidth - 300) + "px";
+    else if(window.location.href.slice(0).split('#')[0] == "https://www.youtube.com/"){
+      document.body.style.transform = "scaleX(0.77) translateX(-15%)";
+      openSidePanel();
+    }else{
+      document.body.style.transform = "scaleX(0.79) translateX(-13.3%)";
       openSidePanel();
     }
   },
@@ -88,7 +91,6 @@ appController = {
     chrome.tabs.executeScript({code: this.formatScript(this.toggleSidePanelScript, "\n")});
   },
   checkForNote: function(tab){
-    console.log(tab.url.slice(0).split('#')[0])
     tab_url = tab.url.slice(0).split('#')[0];
     local_storage.get(null, function(result){
         if (result[hashConverter.hex(tab_url)]){
@@ -194,7 +196,7 @@ function initDatastore(callback){
           if(tab[0]){
             appController.checkForNote(tab[0]);
           }
-        })
+        });
 
       }
     });
