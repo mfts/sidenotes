@@ -76,7 +76,7 @@ appController = {
       document.body.style.transform = "";
       closeSidePanel();
     }
-    else if(window.location.href.slice(0).split('#')[0] == "https://www.youtube.com/"){
+    else if(window.location.href.slice(0).split('/')[2] == "www.youtube.com" || window.location.href.slice(0).split('/')[2] == "en.wikipedia.org"){
       document.body.style.transform = "scaleX(0.77) translateX(-15%)";
       openSidePanel();
     }else{
