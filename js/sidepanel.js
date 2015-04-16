@@ -33,9 +33,9 @@ document.addEventListener( "DOMContentLoaded", function(){
         } else {
           note[noteKey] = {'url': currentUrl,'body': JSON.stringify(textarea.value), 'createdAt': JSON.stringify(new Date()), 'updatedAt': '' };
         }
-      chrome.storage.local.set(note, function() {});
+      chrome.storage.local.set(note);
     });
-    chrome.storage.local.set({saving: 'false'}, function(){});
+    chrome.storage.local.set({saving: 'false'});
   }
 
   function displayStoredData(){
@@ -45,7 +45,6 @@ document.addEventListener( "DOMContentLoaded", function(){
       }
     });
   }
-
 
   var timeoutId;
 

@@ -2,8 +2,9 @@ var DROPBOX_APP_KEY = 'mpbhh63q8ya3ctd';
 
 var currentTable, openDatastore;
 
+var local_storage = chrome.storage.local;
 var client = new Dropbox.Client({key: DROPBOX_APP_KEY});
-var hashConverter = new Hashes.SHA1;;
+var hashConverter = new Hashes.SHA1;
 
 client.onAuthStepChange.addListener(function(event) {
   if (client.isAuthenticated()) {
@@ -15,6 +16,14 @@ client.authenticate({interactive:false}, function (error) {
   if (error) {
     client.reset();
   }
+});
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if(tab){ appController.checkForNote(tab);}
+});
+
+chrome.tabs.onCreated.addListener(function(tabId, changeInfo, tab) {
+   if(tab){ appController.checkForNote(tab);}
 });
 
 appController = {
@@ -35,7 +44,8 @@ appController = {
     client.signOut(null, function(){
       client.reset();
       appController.closeAllSidePanels();
-      chrome.storage.local.clear();
+      appController.changeAllIconsToNormal();
+      local_storage.clear();
     });
   },
   closeAllSidePanels: function(){
@@ -48,7 +58,7 @@ appController = {
   toggleSidePanelScript: function(){
     var closeSidePanel = function(){
       var sidebar = document.querySelector("#sidenotes_sidebar");
-      document.body.removeChild(sidebar);
+      document.documentElement.removeChild(sidebar);
     };
 
     var openSidePanel = function(){
@@ -59,15 +69,18 @@ appController = {
       newElement.setAttribute("style", "z-index: 999999999999999; position: fixed; top: 0px; right: 0px; bottom: 0px; width: 300px; height: 100%; border:0; border-left: 1px solid #eee; box-shadow: 0px -1px 7px 0px #aaa; overflow-x: hidden;");
       newElement.setAttribute("allowtransparency", "false");
       newElement.setAttribute("scrolling", "no");
-      document.body.appendChild(newElement);
+      document.documentElement.appendChild(newElement);
     };
 
     if (document.querySelector("#sidenotes_sidebar")) {
-      document.body.style.width = (document.body.clientWidth + 300) + "px";
+      document.body.style.transform = "";
       closeSidePanel();
     }
-    else {
-      document.body.style.width = (document.body.clientWidth - 300) + "px";
+    else if(window.location.href.slice(0).split('/')[2] == "www.youtube.com" || window.location.href.slice(0).split('/')[2] == "en.wikipedia.org"){
+      document.body.style.transform = "scaleX(0.77) translateX(-15%)";
+      openSidePanel();
+    }else{
+      document.body.style.transform = "scaleX(0.79) translateX(-13.3%)";
       openSidePanel();
     }
   },
@@ -76,13 +89,32 @@ appController = {
   },
   toggleSidePanel: function() {
     chrome.tabs.executeScript({code: this.formatScript(this.toggleSidePanelScript, "\n")});
+  },
+  checkForNote: function(tab){
+    tab_url = tab.url.slice(0).split('#')[0];
+    local_storage.get(null, function(result){
+        if (result[hashConverter.hex(tab_url)]){
+          appController.setIconToIndicateNote(tab);
+        }
+    });
+  },
+  setIconToIndicateNote: function(tab){
+    chrome.browserAction.setIcon({path: {19: "../icon_existing_note.png", 38: "../icon_existing_note.png"}
+      , tabId: tab.id});
+  },
+  changeAllIconsToNormal: function(){
+    chrome.tabs.query(null, function(tabs){
+      for(var i=0;i<tabs.length;i++){
+        chrome.browserAction.setIcon({path: {19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id});
+      }
+    })
   }
 };
 
 datastoreController = {
   updateOrAddRecord: function(newNote, pastNote, hashKey){
     var newNoteData = this.makeRecord(newNote[hashKey]);
-    chrome.storage.local.set({saving: 'true'}, function(){});
+    local_storage.set({saving: 'true'});
     if(pastNote) {
       pastNote.update(newNoteData);
     } else {
@@ -99,15 +131,15 @@ datastoreController = {
     };
   },
   setRemoteNoteToLocalStorage: function(newRemoteNotes) {
-    chrome.storage.local.get(null, function(result){
+    local_storage.get(null, function(result){
         var newLocalNotes = datastoreController.mergeNotes(newRemoteNotes, result);
     });
   },
   syncRemoteStorage: function(currentTable){
-    chrome.storage.local.set({saving: 'false'}, function(){});
+    local_storage.set({saving: 'false'});
     var datastoreRecords = currentTable.query();
     if(datastoreRecords){
-      chrome.storage.local.get(null, function(result){
+      local_storage.get(null, function(result){
           datastoreController.mergeNotes(datastoreRecords, result);
       });
     }
@@ -121,11 +153,11 @@ datastoreController = {
         if(localMatchNote){
           if(localMatchNote['body'].length < datastoreRecords[i].get('body').length){
             newNote[noteKey] = datastoreController.formatForLocalStorage(datastoreRecords[i]);
-            chrome.storage.local.set(newNote, function(){});
+            local_storage.set(newNote);
           }
         } else {
           newNote[noteKey] = datastoreController.formatForLocalStorage(datastoreRecords[i]);
-          chrome.storage.local.set(newNote, function(){});
+          local_storage.set(newNote);
         }
       }
     }
@@ -136,8 +168,8 @@ datastoreController = {
   deleteNote: function(noteUrl, element){
     var result = confirm("Are you sure you want to delete this message?");
     if (result === true) {
-      element.style.display = 'none'
-      var localNoteToDelete = chrome.storage.local.remove(hashConverter.hex(noteUrl), function(){});
+      element.style.display = 'none';
+      var localNoteToDelete = local_storage.remove(hashConverter.hex(noteUrl), function(){});
       var noteToDelete = currentTable.query({url: noteUrl});
       noteToDelete[0].deleteRecord();
     }
@@ -159,10 +191,17 @@ function initDatastore(callback){
       if(changes[hashKey]['newValue'] && changes[hashKey]['newValue']['url'] && changes[hashKey]['newValue']['body']){
         var existingRecord = currentTable.query({url: changes[hashKey]['newValue']['url'] });
         datastoreController.updateOrAddRecord(changes, existingRecord[0], hashKey);
+
+        chrome.tabs.query({currentWindow: true, active: true}, function(tab){
+          if(tab[0]){
+            appController.checkForNote(tab[0]);
+          }
+        });
+
       }
     });
 
-    chrome.storage.local.set({saving: 'false'}, function(){});
+    local_storage.set({saving: 'false'});
     var datastoreRecords = currentTable.query();
     datastoreController.setRemoteNoteToLocalStorage(datastoreRecords);
     callback(currentTable);

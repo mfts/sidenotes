@@ -63,18 +63,17 @@ document.addEventListener( "DOMContentLoaded", function(){
         chrome.tabs.query({url: noteUrl}, function(tabs){
           for(var i=0;i<tabs.length;i++){
             chrome.tabs.executeScript(tabs[i].id, {code: 'document.body.style.width = (document.body.clientWidth + 300) + "px"; var sidebar = document.querySelector("#sidenotes_sidebar");document.body.removeChild(sidebar);'});
+            chrome.browserAction.setIcon({path:{19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id});
           }
         });
-        console.log(this);
-        console.log(noteUrl);
-        console.log(element);
         backgroundPage.datastoreController.deleteNote(noteUrl, element);
+
       });
     }
   }
 
   function setAllNotes(){
-    allRecords = chrome.extension.getBackgroundPage().currentTable.query();
+    allRecords = backgroundPage.currentTable.query();
     formattedRecords = formatNotes(allRecords);
     fuse = new Fuse(formattedRecords, options);
     displayResults(formattedRecords, addActionToNoteLink);
@@ -87,14 +86,15 @@ document.addEventListener( "DOMContentLoaded", function(){
 
 function displayResults(list, callback){
   var notes = "";
-  var noteSearchList = document.querySelector('#search-results');
-  noteSearchList.innerHTML = "";
-
-  for(var i=0;i<list.length;i++){
-    notes += renderNote(list[i]);
+  if(document){
+    var noteSearchList = document.querySelector('#search-results');
+    noteSearchList.innerHTML = "";
+    for(var i=0;i<list.length;i++){
+      notes += renderNote(list[i]);
+    }
+    noteSearchList.innerHTML = notes;
+    callback();
   }
-  noteSearchList.innerHTML = notes;
-  callback();
 }
 
 function displaySearchResults(list, callback){
