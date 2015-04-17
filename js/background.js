@@ -37,7 +37,7 @@ appController = {
       } else {
         chrome.tabs.create({url: "http://sidenotes.co/tutorial"}, function(tab){
           appController.toggleSidePanel();});
-      };
+      }
     });
   },
   signOut: function(){
@@ -56,6 +56,8 @@ appController = {
     });
   },
   toggleSidePanelScript: function(){
+    var whiteListSites = ["en.wikipedia.org","www.youtube.com", "mail.google.com"];
+
     var closeSidePanel = function(){
       var sidebar = document.querySelector("#sidenotes_sidebar");
       document.documentElement.removeChild(sidebar);
@@ -72,11 +74,22 @@ appController = {
       document.documentElement.appendChild(newElement);
     };
 
+    var checkWhiteListSites = function(){
+      var isWhiteListSite = false;
+      for(var i = 0; i < whiteListSites.length; i++){
+        if (window.location.href.slice(0).split('/')[2] == whiteListSites[i]){
+          isWhiteListSite = true;
+          break;
+        }
+      }
+      return isWhiteListSite;
+    };
+
     if (document.querySelector("#sidenotes_sidebar")) {
       document.body.style.transform = "";
       closeSidePanel();
     }
-    else if(window.location.href.slice(0).split('/')[2] == "www.youtube.com" || window.location.href.slice(0).split('/')[2] == "en.wikipedia.org"){
+    else if(checkWhiteListSites()){
       document.body.style.transform = "scaleX(0.77) translateX(-15%)";
       openSidePanel();
     }else{
@@ -99,15 +112,14 @@ appController = {
     });
   },
   setIconToIndicateNote: function(tab){
-    chrome.browserAction.setIcon({path: {19: "../icon_existing_note.png", 38: "../icon_existing_note.png"}
-      , tabId: tab.id});
+    chrome.browserAction.setIcon({path: {19: "../icon_existing_note.png", 38: "../icon_existing_note.png"}, tabId: tab.id});
   },
   changeAllIconsToNormal: function(){
     chrome.tabs.query(null, function(tabs){
       for(var i=0;i<tabs.length;i++){
         chrome.browserAction.setIcon({path: {19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id});
       }
-    })
+    });
   }
 };
 
@@ -175,7 +187,6 @@ datastoreController = {
     }
   }
 };
-
 
 function initDatastore(callback){
   client.getDatastoreManager().openDefaultDatastore(function (error, datastore) {
