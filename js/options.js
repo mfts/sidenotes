@@ -62,7 +62,7 @@ document.addEventListener( "DOMContentLoaded", function(){
         var noteUrl = this.getAttribute('href');
         chrome.tabs.query({url: noteUrl}, function(tabs){
           for(var i=0;i<tabs.length;i++){
-            chrome.tabs.executeScript(tabs[i].id, {code: 'document.body.style.width = (document.body.clientWidth + 300) + "px"; var sidebar = document.querySelector("#sidenotes_sidebar");document.body.removeChild(sidebar);'});
+            chrome.tabs.executeScript(tabs[i].id, {code: 'document.body.style.transform = ""; var sidebar = document.querySelector("#sidenotes_sidebar");document.documentElement.removeChild(sidebar);'});
             chrome.browserAction.setIcon({path:{19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id});
           }
         });

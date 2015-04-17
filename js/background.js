@@ -51,7 +51,7 @@ appController = {
   closeAllSidePanels: function(){
     chrome.tabs.query( {} ,function (tabs) {
       for (var i = 0; i < tabs.length; i++) {
-        chrome.tabs.executeScript(tabs[i].id, {code: 'var sidebar = document.querySelector("#sidenotes_sidebar");document.body.removeChild(sidebar);'});
+        chrome.tabs.executeScript(tabs[i].id, {code: 'var sidebar = document.querySelector("#sidenotes_sidebar");document.documentElement.removeChild(sidebar);'});
       }
     });
   },
