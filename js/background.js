@@ -51,9 +51,14 @@ appController = {
   closeAllSidePanels: function(){
     chrome.tabs.query( {} ,function (tabs) {
       for (var i = 0; i < tabs.length; i++) {
-        chrome.tabs.executeScript(tabs[i].id, {code: 'var sidebar = document.querySelector("#sidenotes_sidebar");document.documentElement.removeChild(sidebar);'});
+        chrome.tabs.executeScript(tabs[i].id, {code: 'document.body.style.transform = ""; var sidebar = document.querySelector("#sidenotes_sidebar");document.documentElement.removeChild(sidebar);'
+        });
+
+        chrome.browserAction.setIcon({path: {19: "../icon_32.png", 38:"../icon_48.png"}, tabId: tabs[i].id
+        });
       }
     });
+    changeAllIconsToNormal();
   },
   toggleSidePanelScript: function(){
     var whiteListSites = ["en.wikipedia.org","www.youtube.com", "mail.google.com"];
