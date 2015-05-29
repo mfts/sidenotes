@@ -77,6 +77,26 @@ nav a {
   text-transform: uppercase;
 }
 
+div.basiccontacts {
+  margin-top: 44px;
+}
+
+input.fields {
+  background: #F8F8F8;
+  border: 0;
+  box-shadow: 0;
+  clear: both;
+  color: #333;
+  display: inline-block;
+  font-family: 'Source Code Pro', monospace, sans-serif;
+  font-size: 15px;
+  line-height: 21px;
+  outline: 0;
+  resize: none;
+  width: 260px;
+  /*height: 85vh;*/
+}
+
 textarea {
   background: #F8F8F8;
   border: 0;

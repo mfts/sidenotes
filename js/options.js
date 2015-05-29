@@ -31,7 +31,7 @@ document.addEventListener( "DOMContentLoaded", function(){
     caseSensitive: false,
     includeScore: true,
     shouldSort: true,
-    keys: ["url", "body"]
+    keys: ["url", "body", "fullname", "lastcontact", "angellist", "linkedin", "company", "email"]
   };
 
   setAllNotes();
@@ -127,7 +127,8 @@ function renderNote(note){
               + '" class="delete-note"><i class="icon-cancel"></i>delete</a>'
             + '</div>'
           + '</div>'
-          + '<p class="note-body">' + JSON.parse(note.body) + '</p>'
+          + '<p class="note-body">' + JSON.parse(note['fullname']) + '</p>'
+          + '<p class="note-body">' + JSON.parse(note['body']) + '</p>'
         + '</li>';
 }
 
@@ -153,6 +154,7 @@ function renderSearchNotes(note) {
               + '" class="delete-note"><i class="icon-cancel"></i>delete</a>'
             + '</div>'
           + '</div>'
+          + '<p class="note-body">' + JSON.parse(note['item']['fullname']) + '</p>'
           + '<p class="note-body">' + JSON.parse(note['item']['body']) + '</p>'
         + '</li>';
 }
@@ -165,7 +167,14 @@ function formatNotes(records){
     eachNote['updatedAt'] = new Date(records[i].get('updatedAt'));
     eachNote['url'] = records[i].get('url');
     eachNote['body'] = records[i].get('body');
+    eachNote['fullname'] = records[i].get('fullname'); // added
+    eachNote['lastcontact'] = records[i].get('lastcontact'); // added
+    eachNote['angellist'] = records[i].get('angellist'); // added
+    eachNote['linkedin'] = records[i].get('linkedin'); // added
+    eachNote['company'] = records[i].get('company'); // added
+    eachNote['email'] = records[i].get('email'); // added
     notes[i] = eachNote;
+    console.log(eachNote);
   }
   return  notes.reverse();
 }

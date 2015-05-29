@@ -143,6 +143,12 @@ datastoreController = {
     return {
         url: noteData['newValue']['url'],
         body: noteData['newValue']['body'],
+        fullname: noteData['newValue']['fullname'],
+        lastcontact: noteData['newValue']['lastcontact'],
+        angellist: noteData['newValue']['angellist'],
+        linkedin: noteData['newValue']['linkedin'],
+        company: noteData['newValue']['company'],
+        email: noteData['newValue']['email'],
         createdAt: new Date(JSON.parse(noteData['newValue']['createdAt'])),
         updatedAt: new Date()
     };
@@ -180,7 +186,15 @@ datastoreController = {
     }
   },
   formatForLocalStorage: function(noteData){
-    return {'url': noteData.get('url'), 'body': noteData.get('body'), 'createdAt': JSON.stringify(noteData.get('createdAt')), 'updatedAt': JSON.stringify(new Date())};
+    return {'url': noteData.get('url'), 
+            'body': noteData.get('body'),
+            'fullname': noteData.get('fullname'),
+            'lastcontact': noteData.get('lastcontact'),
+            'angellist': noteData.get('angellist'),
+            'linkedin': noteData.get('linkedin'),
+            'company': noteData.get('company'),
+            'email': noteData.get('email'),
+            'createdAt': JSON.stringify(noteData.get('createdAt')), 'updatedAt': JSON.stringify(new Date())};
   },
   deleteNote: function(noteUrl, element){
     var result = confirm("Are you sure you want to delete this message?");
@@ -204,7 +218,7 @@ function initDatastore(callback){
 
     chrome.storage.onChanged.addListener(function(changes, namespace) {
       var hashKey = Object.keys(changes)[0];
-      if(changes[hashKey]['newValue'] && changes[hashKey]['newValue']['url'] && changes[hashKey]['newValue']['body']){
+      if(changes[hashKey]['newValue'] && changes[hashKey]['newValue']['url'] && changes[hashKey]['newValue']['body'] && changes[hashKey]['newValue']['fullname'] && changes[hashKey]['newValue']['lastcontact'] && changes[hashKey]['newValue']['angellist'] && changes[hashKey]['newValue']['linkedin'] && changes[hashKey]['newValue']['company'] && changes[hashKey]['newValue']['email']){
         var existingRecord = currentTable.query({url: changes[hashKey]['newValue']['url'] });
         datastoreController.updateOrAddRecord(changes, existingRecord[0], hashKey);
 
